@@ -1,5 +1,6 @@
 from django.db import models
 from django.core.validators import MinValueValidator
+from django.core.exceptions import ValidationError
 
 
 class Sala(models.Model):
@@ -40,3 +41,18 @@ class Reserva(models.Model):
     class Meta:
         ordering = ["fecha", "hora_inicio"]
         indexes = [models.Index(fields=["sala", "fecha"])]
+    
+    def clean(self):
+        #horario valido
+        if self.hora_inicio >= self.hora_fin:
+            raise ValidationError("La hora de incio debe de ser menor que la hora de fin")
+        #validacion de misma sala con fecha
+        qs = Reserva.objects.filter(sala=self.sala, fecha=self.fecha)
+        if self.pk:
+            qs = qs.exclude(pk=self.pk)
+        if qs.filter(hora_inicio__lt=self.hora_fin, hora_fin__gt=self.hora_inicio).exists():
+            raise ValidationError("El horarrio se empalma con otra reserva que ya existe")
+        
+    def save(self, *args, **kwargs):
+        self.full_clean()  # corre clean() y valida campos
+        return super().save(*args, **kwargs)
