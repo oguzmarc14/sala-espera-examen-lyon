@@ -14,3 +14,12 @@ class ReservaViewSet(viewsets.ModelViewSet):
     serializer_class = SalaSerializer
     permission_classes = [AllowAny]
     
+    def get_queryset(self):
+        qs = super().get_queryset()
+        sala_id = self.request.query_params.get("sala")
+        fecha = self.request.query_params.get("fecha")  # YYYY-MM-DD
+        if sala_id:
+            qs = qs.filter(sala_id=sala_id)
+        if fecha:
+            qs = qs.filter(fecha=fecha)
+        return qs
