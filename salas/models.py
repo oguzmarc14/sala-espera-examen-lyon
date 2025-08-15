@@ -43,16 +43,28 @@ class Reserva(models.Model):
         indexes = [models.Index(fields=["sala", "fecha"])]
     
     def clean(self):
-        #horario valido
+        """
+        Reglas:
+        - Rango válido: hora_inicio < hora_fin (bordes abiertos [inicio, fin)).
+        - No permitir solapes en misma sala y fecha.
+        """
+        # 1) Horario válido
         if self.hora_inicio >= self.hora_fin:
-            raise ValidationError("La hora de incio debe de ser menor que la hora de fin")
-        #validacion de misma sala con fecha
+            raise ValidationError("La hora de inicio debe ser menor que la hora de fin.")
+
+        # 2) Mismas sala y fecha (usa índice compuesto para eficiencia)
+        # Obtiene todas las reservas que ocurren en la misma sala y fecha que la actual
         qs = Reserva.objects.filter(sala=self.sala, fecha=self.fecha)
+
+        # Evita auto-colisión si estamos editando (ya tiene pk)
         if self.pk:
             qs = qs.exclude(pk=self.pk)
+
+        # 3) Solape: inicio_existente < fin_nueva  y  fin_existente > inicio_nueva
         if qs.filter(hora_inicio__lt=self.hora_fin, hora_fin__gt=self.hora_inicio).exists():
-            raise ValidationError("El horarrio se empalma con otra reserva que ya existe")
-        
+            raise ValidationError("El horario se empalma con otra reserva que ya existe.")
+
     def save(self, *args, **kwargs):
-        self.full_clean()  # corre clean() y valida campos
+        # Ejecuta validaciones del modelo siempre (admin, DRF, etc.)
+        self.full_clean()
         return super().save(*args, **kwargs)
