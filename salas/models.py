@@ -1,6 +1,7 @@
 from django.db import models
 from django.core.validators import MinValueValidator
 from django.core.exceptions import ValidationError
+from datetime import datetime, timedelta
 
 
 class Sala(models.Model):
@@ -64,6 +65,12 @@ class Reserva(models.Model):
         if qs.filter(hora_inicio__lt=self.hora_fin, hora_fin__gt=self.hora_inicio).exists():
             raise ValidationError("El horario se empalma con otra reserva que ya existe.")
 
+        #dutacion de 2hrs
+        dt_inicio = datetime.combine(self.fecha, self.hora_inicio)
+        dt_fin = datetime.combine(self.fecha, self.hora_fin)
+        if dt_fin - dt_inicio > timedelta(hours=2):
+            raise ValidationError("La duracion maxima es de 2 horas")
+        
     def save(self, *args, **kwargs):
         # Ejecuta validaciones del modelo siempre (admin, DRF, etc.)
         self.full_clean()
