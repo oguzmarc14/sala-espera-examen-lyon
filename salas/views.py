@@ -1,7 +1,7 @@
 from rest_framework import viewsets 
-from .models import Sala
-from .serializers import SalaSerializer, ReservaSerializer
 from rest_framework.permissions import AllowAny
+from .models import Sala, Reserva
+from .serializers import SalaSerializer, ReservaSerializer
 
 # Create your views here.
 class SalaViewSet(viewsets.ModelViewSet):
@@ -10,8 +10,8 @@ class SalaViewSet(viewsets.ModelViewSet):
     permission_classes = [AllowAny]
     
 class ReservaViewSet(viewsets.ModelViewSet):
-    queryset = Sala.objects.all()
-    serializer_class = SalaSerializer
+    queryset = Reserva.objects.select_related("sala").all()
+    serializer_class = ReservaSerializer
     permission_classes = [AllowAny]
     
     def get_queryset(self):
