@@ -12,12 +12,13 @@ class SalaViewSet(viewsets.ModelViewSet):
     permission_classes = [AllowAny]
     
 class ReservaViewSet(viewsets.ModelViewSet):
-    queryset = Reserva.objects.select_related("sala").all()
+    queryset = Reserva.objects.select_related("sala").all().order_by("fecha", "hora_inicio")
     serializer_class = ReservaSerializer
     permission_classes = [AllowAny]
-    filter_backends = [DjangoFilterBackend]
+    
+    filter_backends = [DjangoFilterBackend, OrderingFilter, SearchFilter]
     filterset_fields = ["sala", "fecha", "estado"]
-    ordering_fields = ["fecha", "hora_inicio", "horario_fin", "creado_en"]
+    ordering_fields = ["fecha", "hora_inicio", "hora_fin", "creado_en"]
     search_fields = ["titulo", "nombre_contacto", "email_contacto"]
     
     def get_queryset(self):
