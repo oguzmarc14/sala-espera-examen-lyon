@@ -38,6 +38,7 @@ class Reserva(models.Model):
     notas = models.TextField(blank=True)
     creado_en = models.DateTimeField(auto_now_add=True)
     actualizado_en = models.DateTimeField(auto_now=True)
+    
 
     class Meta:
         ordering = ["fecha", "hora_inicio"]

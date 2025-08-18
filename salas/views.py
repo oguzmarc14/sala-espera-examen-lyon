@@ -4,6 +4,9 @@ from rest_framework.filters import OrderingFilter, SearchFilter
 from .models import Sala, Reserva
 from .serializers import SalaSerializer, ReservaSerializer
 from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework.decorators import action
+from rest_framework.response import Response
+from rest_framework import status
 
 # Create your views here.
 class SalaViewSet(viewsets.ModelViewSet):
@@ -30,3 +33,15 @@ class ReservaViewSet(viewsets.ModelViewSet):
         if fecha:
             qs = qs.filter(fecha=fecha)
         return qs
+    
+    @action(detail=True, methods=["post"])
+    def liberar(self, request, pk=None):
+        #cancelar manualmente una reservaa pasa de estado a cancelada
+        reserva = self.get_object()
+        if reserva.estado == "cancelada":   
+            return Response({"detail": "La reserva ya esta cancelada."}, status=400)
+        type(reserva).objects.filter(pk=reserva.pk).update(estado="cancelada")
+        reserva.refresh_from_db()
+        return Response(self.get_serializer(reserva).data, status=status.HTTP_200_OK)    
+    
+    
