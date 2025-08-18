@@ -18,14 +18,24 @@ class ReservaSerializer(serializers.ModelSerializer):
     class Meta:
         model = Reserva
         fields = [
-            "id", "sala", "sala_detalle", "titulo", "nombre_contacto", "email_contacto",
-            "fecha", "hora_inicio", "hora_fin", "estado", "notas",
-            "creado_en", "actualizado_en",
+            "id",
+            "sala",
+            "sala_detalle",
+            "titulo",
+            "nombre_contacto",
+            "email_contacto",
+            "fecha",
+            "hora_inicio",
+            "hora_fin",
+            "estado",
+            "notas",
+            "creado_en",
+            "actualizado_en",
         ]
         read_only_fields = ["creado_en", "actualizado_en"]
 
     def validate(self, data):
-        # horario de inicio menor a horario final 
+        # horario de inicio menor a horario final
         hi = data.get("hora_inicio") or getattr(self.instance, "hora_inicio", None)
         hf = data.get("hora_fin") or getattr(self.instance, "hora_fin", None)
         fecha = data.get("fecha") or getattr(self.instance, "fecha", None)
@@ -33,13 +43,17 @@ class ReservaSerializer(serializers.ModelSerializer):
 
         # 1) Horario válido
         if hi and hf and hi >= hf:
-            raise serializers.ValidationError("hora_inicio debe ser menor que hora_fin.")
+            raise serializers.ValidationError(
+                "hora_inicio debe ser menor que hora_fin."
+            )
 
         # 2) Duración máxima 2h
         if fecha and hi and hf:
             duracion = datetime.combine(fecha, hf) - datetime.combine(fecha, hi)
             if duracion > timedelta(hours=2):
-                raise serializers.ValidationError("La duración máxima de una reserva es de 2 horas.")
+                raise serializers.ValidationError(
+                    "La duración máxima de una reserva es de 2 horas."
+                )
 
         # 3) Anti-solapamiento (intervalo semiabierto [inicio, fin))
         if sala and fecha and hi and hf:
@@ -47,7 +61,9 @@ class ReservaSerializer(serializers.ModelSerializer):
             if self.instance:
                 qs = qs.exclude(pk=self.instance.pk)
             if qs.filter(hora_inicio__lt=hf, hora_fin__gt=hi).exists():
-                raise serializers.ValidationError("El horario se empalma con otra reserva existente.")
+                raise serializers.ValidationError(
+                    "El horario se empalma con otra reserva existente."
+                )
 
         return data
 
