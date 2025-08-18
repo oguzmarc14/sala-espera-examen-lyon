@@ -12,6 +12,7 @@ from .models import Sala, Reserva
 
 class ReservaAPITests(APITestCase):
     def setUp(self):
+        #sala de prueba 
         self.sala = Sala.objects.create(nombre="Sala Test", capacidad=10, ubicacion="A")
 
     def _payload(self, **overrides):
@@ -30,6 +31,7 @@ class ReservaAPITests(APITestCase):
         return base
 
     def test_crear_reserva_valida(self):
+        #validando una reserva normal
         url = reverse("reserva-list")
         resp = self.client.post(url, self._payload(), format="json")
         self.assertEqual(resp.status_code, status.HTTP_201_CREATED)
@@ -77,7 +79,7 @@ class ReservaAPITests(APITestCase):
             crear.status_code, status.HTTP_400_BAD_REQUEST
         )  # bloqueada por serializer
 
-        # Creamos una válida para poder liberarla
+        # Creamos una valida para poder liberarla
         crear_ok = self.client.post(url, self._payload(), format="json")
         self.assertEqual(crear_ok.status_code, status.HTTP_201_CREATED)
         rid = crear_ok.data["id"]
