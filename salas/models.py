@@ -38,12 +38,11 @@ class Reserva(models.Model):
     notas = models.TextField(blank=True)
     creado_en = models.DateTimeField(auto_now_add=True)
     actualizado_en = models.DateTimeField(auto_now=True)
-    
 
     class Meta:
         ordering = ["fecha", "hora_inicio"]
         indexes = [models.Index(fields=["sala", "fecha"])]
-    
+
     def clean(self):
         """
         Reglas:
@@ -52,7 +51,9 @@ class Reserva(models.Model):
         """
         # 1) Horario válido
         if self.hora_inicio >= self.hora_fin:
-            raise ValidationError("La hora de inicio debe ser menor que la hora de fin.")
+            raise ValidationError(
+                "La hora de inicio debe ser menor que la hora de fin."
+            )
 
         # 2) Mismas sala y fecha (usa índice compuesto para eficiencia)
         # Obtiene todas las reservas que ocurren en la misma sala y fecha que la actual
@@ -63,15 +64,19 @@ class Reserva(models.Model):
             qs = qs.exclude(pk=self.pk)
 
         # 3) Solape: inicio_existente < fin_nueva  y  fin_existente > inicio_nueva
-        if qs.filter(hora_inicio__lt=self.hora_fin, hora_fin__gt=self.hora_inicio).exists():
-            raise ValidationError("El horario se empalma con otra reserva que ya existe.")
+        if qs.filter(
+            hora_inicio__lt=self.hora_fin, hora_fin__gt=self.hora_inicio
+        ).exists():
+            raise ValidationError(
+                "El horario se empalma con otra reserva que ya existe."
+            )
 
-        #dutacion de 2hrs
+        # dutacion de 2hrs
         dt_inicio = datetime.combine(self.fecha, self.hora_inicio)
         dt_fin = datetime.combine(self.fecha, self.hora_fin)
         if dt_fin - dt_inicio > timedelta(hours=2):
             raise ValidationError("La duracion maxima es de 2 horas")
-        
+
     def save(self, *args, **kwargs):
         # Ejecuta validaciones del modelo siempre (admin, DRF, etc.)
         self.full_clean()
