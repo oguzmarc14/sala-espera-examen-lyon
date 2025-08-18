@@ -1,0 +1,113 @@
+/* fondo y tipografía */
+body {
+  font-family: Arial, sans-serif;
+  margin: 20px;
+  background: #98c4e1ff; /* tu color */
+  color: #333;
+}
+
+/* contenedor principal */
+.container {
+  max-width: 1000px;
+  margin: auto;
+  background: white;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+}
+
+/* encabezados */
+h1, h2 {
+  color: #222;
+}
+
+/* grid dos columnas */
+.layout {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-top: 12px;
+}
+
+/* panel simple (form y lista) */
+.panel {
+  background: #fff;
+  border-radius: 8px;
+  padding: 16px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+}
+
+/* formulario */
+form {
+  display: grid;
+  gap: 10px;
+  margin-bottom: 0; /* el panel ya da espacio */
+}
+
+label {
+  display: flex;
+  flex-direction: column;
+  font-size: 14px;
+}
+
+input, select, button {
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+button {
+  background: #007acc;
+  color: white;
+  border: none;
+  cursor: pointer;
+}
+
+button:hover {
+  background: #005f99;
+}
+
+/* alertas */
+.alert {
+  padding: 8px;
+  margin-bottom: 10px;
+  border-radius: 4px;
+}
+.alert.success {
+  background: #d1fae5;
+  color: #065f46;
+}
+.alert.error {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+/* lista de reservas */
+.reservas {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.reservas li {
+  padding: 10px 0;
+  border-bottom: 1px solid #ddd;
+}
+.reservas li:last-child {
+  border-bottom: none;
+}
+.reservas li span {
+  font-weight: bold;
+}
+.reservas li span.pendiente {
+  color: #b45309;
+}
+.reservas li span.cancelada {
+  color: #dc2626;
+}
+
+/* responsive: en móvil se apilan */
+@media (max-width: 900px) {
+  .layout {
+    grid-template-columns: 1fr;
+  }
+}

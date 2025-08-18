@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>Reservas de Salas</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div id="app" class="container">
+    <h1>Reservas de Salas</h1>
+
+    <div v-if="msg" :class="ok ? 'alert success' : 'alert error'">
+      {{ msg }}
+    </div>
+
+    <div class="layout">
+      <!-- Columna izquierda: Formulario -->
+      <div class="panel">
+        <form @submit.prevent="crearReserva">
+          <label>Sala:
+            <select v-model.number="nuevaReserva.sala" required>
+              <option disabled value="">Selecciona</option>
+              <option v-for="s in salas" :key="s.id" :value="s.id">
+                {{ s.nombre }} (cap. {{ s.capacidad }})
+              </option>
+            </select>
+          </label>
+
+          <label>Título:
+            <input v-model="nuevaReserva.titulo" required>
+          </label>
+
+          <label>Contacto:
+            <input v-model="nuevaReserva.nombre_contacto" required>
+          </label>
+
+          <label>Email:
+            <input type="email" v-model="nuevaReserva.email_contacto" required>
+          </label>
+
+          <label>Fecha:
+            <input type="date" v-model="nuevaReserva.fecha" required>
+          </label>
+
+          <label>Hora inicio:
+            <input type="time" v-model="nuevaReserva.hora_inicio" required>
+          </label>
+
+          <label>Hora fin:
+            <input type="time" v-model="nuevaReserva.hora_fin" required>
+          </label>
+
+          <button type="submit">Crear reserva</button>
+        </form>
+      </div>
+
+      <!-- Columna derecha: Listado -->
+      <div class="panel">
+        <h2>Listado de reservas</h2>
+        <ul class="reservas">
+          <li v-for="r in reservas" :key="r.id">
+            <strong>{{ r.titulo }}</strong> – Sala {{ r.sala }}
+            ({{ r.fecha }} {{ r.hora_inicio }}–{{ r.hora_fin }})
+            · Estado: <span :class="r.estado">{{ r.estado }}</span>
+            <button v-if="r.estado==='pendiente'" @click="liberar(r.id)">Liberar</button>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const API = "http://127.0.0.1:8000/api";
+    const { createApp } = Vue;
+
+    createApp({
+      data() {
+        return {
+          salas: [],
+          reservas: [],
+          msg: "",
+          ok: false,
+          nuevaReserva: {
+            sala: "",
+            titulo: "",
+            nombre_contacto: "",
+            email_contacto: "",
+            fecha: "",
+            hora_inicio: "",
+            hora_fin: "",
+            estado: "pendiente",
+          }
+        };
+      },
+      methods: {
+        async cargarSalas() {
+          const resp = await fetch(`${API}/salas/`);
+          this.salas = await resp.json();
+          // si quieres seleccionar una por defecto:
+          if (!this.nuevaReserva.sala && this.salas.length) {
+            this.nuevaReserva.sala = this.salas[0].id;
+          }
+        },
+        async cargarReservas() {
+          const resp = await fetch(`${API}/reservas/`);
+          this.reservas = await resp.json();
+        },
+        async crearReserva() {
+          this.msg = ""; this.ok = false;
+          try {
+            const resp = await fetch(`${API}/reservas/`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(this.nuevaReserva)
+            });
+            if (!resp.ok) {
+              const err = await resp.json().catch(() => ({}));
+              throw new Error((err && JSON.stringify(err)) || "No se pudo crear");
+            }
+            this.ok = true; this.msg = "Reserva creada";
+            await this.cargarReservas();
+          } catch (e) {
+            this.msg = e.message || "Error creando reserva";
+          }
+        },
+        async liberar(id) {
+          this.msg = ""; this.ok = false;
+          try {
+            const resp = await fetch(`${API}/reservas/${id}/liberar/`, { method: "POST" });
+            if (!resp.ok) {
+              const err = await resp.json().catch(() => ({}));
+              throw new Error((err && JSON.stringify(err)) || "No se pudo liberar");
+            }
+            this.ok = true; this.msg = "Reserva liberada";
+            await this.cargarReservas();
+          } catch (e) {
+            this.msg = e.message || "Error liberando";
+          }
+        }
+      },
+      async mounted() {
+        await this.cargarSalas();
+        await this.cargarReservas();
+      }
+    }).mount("#app");
+  </script>
+</body>
+</html>
